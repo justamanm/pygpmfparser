@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "../gpmf-parser/GPMF_parser.h"
+#include "../gpmf-parser/GPMF_common.h"
 #include "../gpmf-parser/demo/GPMF_mp4reader.h"
 #include <string>
 #include <vector>
@@ -10,15 +11,16 @@ namespace py = pybind11;
 class GPMFStreamCtx {
 private:
     GPMF_stream gs_stream;
-    void* mp4_handle = nullptr;
+    size_t mp4_handle = 0;
     uint32_t current_payload = 0;
     uint32_t total_payloads = 0;
     uint32_t* payload = nullptr;
+    size_t res_handle = 0;
     uint32_t payload_size = 0;
 
 public:
     GPMFStreamCtx(const std::string& filepath) {
-        mp4_handle = OpenMP4Source((char*)filepath.c_str(), MOV_GPMF_TRAK, MOV_GPMF_TRAK);
+        mp4_handle = OpenMP4Source((char*)filepath.c_str(), MOV_GPMF_TRAK_TYPE, MOV_GPMF_TRAK_SUBTYPE, 0);
         if (mp4_handle) {
             total_payloads = GetNumberPayloads(mp4_handle);
         }
@@ -27,10 +29,11 @@ public:
     bool next_key() {
         while (current_payload < total_payloads) {
             if (payload) {
-                FreePayload(payload);
+                FreePayloadResource(mp4_handle, res_handle);
                 payload = nullptr;
+                res_handle = 0;
             }
-            payload = GetPayload(mp4_handle, current_payload);
+            payload = GetPayload(mp4_handle, res_handle, current_payload);
             payload_size = GetPayloadSize(mp4_handle, current_payload);
             if (payload && GPMF_Init(&gs_stream, payload, payload_size) == GPMF_OK) {
                 if (GPMF_OK == GPMF_FindNext(&gs_stream, GPMF_KEY_STREAM, GPMF_RECURSE_LEVELS)) {
@@ -73,13 +76,13 @@ public:
     bool validate() {
         if (!mp4_handle) return false;
         for (uint32_t i = 0; i < total_payloads; i++) {
-            uint32_t* temp_payload = GetPayload(mp4_handle, i);
+            uint32_t* temp_payload = GetPayload(mp4_handle, 0, i);
             uint32_t temp_size = GetPayloadSize(mp4_handle, i);
             if (temp_payload) {
                 GPMF_stream temp_stream;
                 GPMF_Init(&temp_stream, temp_payload, temp_size);
-                GPMF_error err = GPMF_Validate(&temp_stream, GPMF_RECURSE_LEVELS);
-                FreePayload(temp_payload);
+                GPMF_ERR err = GPMF_Validate(&temp_stream, GPMF_RECURSE_LEVELS);
+                FreePayloadResource(mp4_handle, 0);
                 if (err != GPMF_OK) return false;
             }
         }
@@ -88,12 +91,13 @@ public:
 
     void close() {
         if (payload) {
-            FreePayload(payload);
+            FreePayloadResource(mp4_handle, res_handle);
             payload = nullptr;
+            res_handle = 0;
         }
         if (mp4_handle) {
-            CloseMP4Source(mp4_handle);
-            mp4_handle = nullptr;
+            CloseSource(mp4_handle);
+            mp4_handle = 0;
         }
     }
 
