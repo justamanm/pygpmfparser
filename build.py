@@ -13,7 +13,10 @@ ext_modules = [
         "pygpmfparser.gpmf_bindings",
         ["pygpmfparser/gpmf_bindings.cpp", "gpmf-parser/GPMF_parser.c", "gpmf-parser/demo/GPMF_mp4reader.c"],
         include_dirs=["gpmf-parser", "gpmf-parser/demo"],
-        extra_compile_args=["-std=c++11"],
+        extra_compile_args={
+            "cxx": ["-std=c++11"],
+            "c": []
+        },
     ),
 ]
 
