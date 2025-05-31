@@ -83,6 +83,7 @@ with GoProTelemetryExtractor("video.mp4") as extractor:
             print(f"加速度计值: {floats}")
 
 项目结构
+```text
 pygpmfparser/
 ├── pygpmfparser/
 │   ├── __init__.py
@@ -97,6 +98,7 @@ pygpmfparser/
 ├── build.py
 ├── README.md
 ├── LICENSE
+```
 
 从源代码构建
 确保 gpmf-parser/ 子模块已初始化：

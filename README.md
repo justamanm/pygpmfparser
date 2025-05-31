@@ -83,6 +83,7 @@ with GoProTelemetryExtractor("video.mp4") as extractor:
             print(f"Accelerometer values: {floats}")
 
 Project Structure
+```text
 pygpmfparser/
 ├── pygpmfparser/
 │   ├── __init__.py
@@ -97,6 +98,7 @@ pygpmfparser/
 ├── build.py
 ├── README.md
 ├── LICENSE
+```
 
 Building from Source
 Ensure gpmf-parser/ submodule is initialized:
