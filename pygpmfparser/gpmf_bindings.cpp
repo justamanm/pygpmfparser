@@ -59,8 +59,9 @@ public:
 
     py::dict get_key_info() {
         py::dict info;
-        info["type_char"] = std::string(1, GPMF_Type(&gs_stream));
-        info["type_string"] = std::string(GPMF_TypeString(GPMF_Type(&gs_stream)));
+        char type_char = GPMF_Type(&gs_stream);
+        info["type_char"] = std::string(1, type_char);
+        info["type_string"] = std::string(1, type_char);
         info["struct_size"] = GPMF_StructSize(&gs_stream);
         info["repeat"] = GPMF_Repeat(&gs_stream);
         info["samples"] = GPMF_PayloadSampleCount(&gs_stream);
